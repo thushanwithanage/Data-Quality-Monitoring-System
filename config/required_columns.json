@@ -1,0 +1,5 @@
+{
+  "subscriptions": ["subscription_id", "customer_id", "plan", "monthly_price", "status", "start_date"],
+  "customers": ["customer_id", "company_name", "country", "industry", "signup_date"],
+  "payments": ["payment_id", "subscription_id", "amount", "payment_date", "payment_status", "ingestion_date"]
+}

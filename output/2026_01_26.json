@@ -1,0 +1,121 @@
+[
+    {
+        "table": "subscriptions",
+        "column": "subscription_id",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "subscriptions",
+        "column": "customer_id",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "subscriptions",
+        "column": "plan",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "subscriptions",
+        "column": "monthly_price",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "subscriptions",
+        "column": "status",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "subscriptions",
+        "column": "start_date",
+        "missing_rows": 0,
+        "total_rows": 866,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "customers",
+        "column": "customer_id",
+        "missing_rows": 0,
+        "total_rows": 1010,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "customers",
+        "column": "company_name",
+        "missing_rows": 0,
+        "total_rows": 1010,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "customers",
+        "column": "country",
+        "missing_rows": 0,
+        "total_rows": 1010,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "customers",
+        "column": "industry",
+        "missing_rows": 191,
+        "total_rows": 1010,
+        "missing_percentage": 18.91
+    },
+    {
+        "table": "customers",
+        "column": "signup_date",
+        "missing_rows": 0,
+        "total_rows": 1010,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "payments",
+        "column": "payment_id",
+        "missing_rows": 0,
+        "total_rows": 5603,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "payments",
+        "column": "subscription_id",
+        "missing_rows": 0,
+        "total_rows": 5603,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "payments",
+        "column": "amount",
+        "missing_rows": 1422,
+        "total_rows": 5603,
+        "missing_percentage": 25.38
+    },
+    {
+        "table": "payments",
+        "column": "payment_date",
+        "missing_rows": 0,
+        "total_rows": 5603,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "payments",
+        "column": "payment_status",
+        "missing_rows": 0,
+        "total_rows": 5603,
+        "missing_percentage": 0.0
+    },
+    {
+        "table": "payments",
+        "column": "ingestion_date",
+        "missing_rows": 0,
+        "total_rows": 5603,
+        "missing_percentage": 0.0
+    }
+]
