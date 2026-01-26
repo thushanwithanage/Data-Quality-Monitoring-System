@@ -35,7 +35,7 @@ def load_config_and_logger(error_msgs):
         return config, logger
 
     except Exception as e:
-        print(error_msgs["env_load_error"].format(e))
+        logger.error(error_msgs["env_load_error"].format(e))
         raise
 
 # Load JSON configuration files
