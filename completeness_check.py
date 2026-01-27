@@ -35,7 +35,7 @@ def load_config_and_logger(error_msgs):
         return config, logger
 
     except Exception as e:
-        logger.error(error_msgs["env_load_error"].format(e))
+        print(error_msgs["env_load_error"].format(e))
         raise
 
 # Load JSON configuration files
@@ -79,16 +79,17 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
         for col in req_cols_list:
             try:
-                missing_count = df[col].isnull().sum()
+                missing_rows = df[col].isnull().sum()
                 total_rows = len(df)
 
                 dq_metrics.append({
+                    output_keys["metric_date"]: datetime.today().strftime("%Y-%m-%d"),
                     output_keys["table_name"]: table,
                     output_keys["column_name"]: col,
-                    output_keys["missing_count"]: int(missing_count),
+                    output_keys["missing_rows"]: int(missing_rows),
                     output_keys["total_rows"]: int(total_rows),
                     output_keys["missing_percentage"]: round(
-                        (missing_count / total_rows * 100) if total_rows > 0 else 0, 2
+                        (missing_rows / total_rows * 100) if total_rows > 0 else 0, 2
                     ),
                 })
 

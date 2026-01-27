@@ -1,7 +1,8 @@
 {
-    "table_name": "table",
-    "column_name": "column",
-    "missing_count": "missing_rows",
+    "metric_date": "metric_date",
+    "table_name": "table_name",
+    "column_name": "column_name",
+    "missing_rows": "missing_rows",
     "total_rows": "total_rows",
     "missing_percentage": "missing_percentage"
 }
