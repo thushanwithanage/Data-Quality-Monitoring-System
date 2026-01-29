@@ -28,6 +28,7 @@ def load_config_and_logger(error_msgs):
             "columns_path": os.path.join(BASE_DIR, os.getenv("REQ_COLUMNS_PATH")),
             "output_path": os.path.join(BASE_DIR, os.getenv("OUTPUT_PATH")),
             "output_format_path": os.path.join(BASE_DIR, os.getenv("OUTPUT_FORMAT_PATH")),
+            "pipeline_name": os.getenv("PIPELINE_NAME"),
             "log_dir": os.path.join(BASE_DIR, os.getenv("LOG_PATH", "logs")),
         }
 
@@ -56,15 +57,49 @@ def load_json_configs(config, logger, error_msgs):
         logger.error(error_msgs["json_load_error"].format(e))
         raise
 
+# Create metric record
+def build_metric_record(
+    output_keys: dict,
+    pipeline_name: str,
+    run_timestamp: str,
+    metric_date: str,
+    table: str,
+    column: str,
+    total_rows: int,
+    missing_rows: int,
+) -> dict:
+
+    return {
+        output_keys["pipeline_name"]: pipeline_name,
+        output_keys["run_timestamp"]: run_timestamp,
+        output_keys["metric_date"]: metric_date,
+        output_keys["table_name"]: table,
+        output_keys["column_name"]: column,
+        output_keys["total_rows"]: int(total_rows),
+        output_keys["missing_rows"]: int(missing_rows),
+        output_keys["missing_percentage"]: round(
+            (missing_rows / total_rows * 100) if total_rows > 0 else 0, 2
+        )
+    }
+
+# Read file
+def read_file(data_path: str, table: str) -> pd.DataFrame:
+    return pd.read_csv(os.path.join(data_path, f"{table}.csv"))
 
 # Run data quality checks
-def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs):
+def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name):
     
     dq_metrics = []
 
     for table in tables:
         try:
-            df = pd.read_csv(os.path.join(data_path, f"{table}.csv"))
+            df = read_file(data_path, table)
+            total_rows = len(df)
+
+            if df.empty:
+                logger.error(error_msgs["table_empty"].format(table))
+                continue
+
         except FileNotFoundError:
             logger.error(error_msgs["csv_not_found"].format(table))
             continue
@@ -74,24 +109,32 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
         req_cols_list = req_cols_config.get(table, [])
         if not req_cols_list:
-            logger.warning(error_msgs["no_required_columns"].format(table))
+            logger.error(error_msgs["no_required_columns"].format(table))
             continue
+
+        run_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        metric_date = datetime.now().strftime("%Y-%m-%d")
 
         for col in req_cols_list:
             try:
-                missing_rows = df[col].isnull().sum()
-                total_rows = len(df)
+                if col not in df.columns:
+                    logger.error(error_msgs["column_not_found"].format(col, table))
+                    continue
 
-                dq_metrics.append({
-                    output_keys["metric_date"]: datetime.today().strftime("%Y-%m-%d"),
-                    output_keys["table_name"]: table,
-                    output_keys["column_name"]: col,
-                    output_keys["missing_rows"]: int(missing_rows),
-                    output_keys["total_rows"]: int(total_rows),
-                    output_keys["missing_percentage"]: round(
-                        (missing_rows / total_rows * 100) if total_rows > 0 else 0, 2
-                    ),
-                })
+                missing_rows = int(df[col].isnull().sum())
+
+                metric = build_metric_record(
+                    output_keys=output_keys,
+                    pipeline_name=pipeline_name,
+                    run_timestamp=run_ts,
+                    metric_date=metric_date,
+                    table=table,
+                    column=col,
+                    total_rows=total_rows,
+                    missing_rows=missing_rows
+                )
+
+                dq_metrics.append(metric)
 
             except KeyError:
                 logger.error(error_msgs["column_not_found"].format(col, table))
@@ -104,7 +147,7 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 def save_output(dq_metrics, output_path, logger, error_msgs):
     try:
         os.makedirs(output_path, exist_ok=True)
-        current_date = datetime.today().strftime("%Y_%m_%d")
+        current_date = datetime.today().strftime("%Y-%m-%d")
         output_file = os.path.join(output_path, f"{current_date}.json")
 
         with open(output_file, "w") as f:
@@ -131,6 +174,7 @@ def main():
         config["data_path"],
         logger,
         error_msgs,
+        config["pipeline_name"]
     )
 
     save_output(dq_metrics, config["output_path"], logger, error_msgs)

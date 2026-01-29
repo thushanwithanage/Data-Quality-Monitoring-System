@@ -2,10 +2,15 @@
     "env_load_error": "Error loading environment variables: {}",
     "json_load_error": "Error loading JSON config files: {}",
     "csv_not_found": "Warning: CSV file not found for table '{}'.",
+    "table_empty": "Warning: Table '{}' is empty.",
     "csv_read_error": "Error reading CSV for table '{}': {}",
     "no_required_columns": "Warning: No required columns found for table '{}' in config.",
-    "column_not_found": "Warning: Column '{}' not found in table '{}'. Skipping column...",
+    "column_not_found": "Warning: Column '{}' not found in table '{}'",
     "column_processing_error": "Error processing column '{}' in table '{}': {}",
     "json_save_error": "Error saving output JSON: {}",
-    "success_message": "Data quality metrics saved to {}"
+    "success_message": "Data quality metrics saved to {}",
+    "db_success_message": "Inserted '{}' rows into table '{}' successfully",
+    "db_insert_error": "Error inserting data into table '{}'",
+    "supabase_client_error": "Error creating Supabase client: {}",
+    "key_error": "Key error encountered: {}"
 }

@@ -1,4 +1,6 @@
 {
+    "pipeline_name": "pipeline_name",
+    "run_timestamp": "run_timestamp",
     "metric_date": "metric_date",
     "table_name": "table_name",
     "column_name": "column_name",
