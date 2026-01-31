@@ -68,3 +68,41 @@ def get_path(env_var: str) -> str:
 def write_to_json(output_file, dq_metrics, indent:int =4):
     with open(output_file, "w") as f:
         json.dump(dq_metrics, f, indent=indent)
+
+# Load pipeline configuration from environment variables
+def load_pipeline_config(error_msgs: dict) -> dict:
+    return {
+        "paths": {
+            "data": get_path(
+                get_env_variable("DATA_PATH", error_msgs["data_path_not_found"])
+            ),
+            "tables": get_path(
+                get_env_variable("TABLES_PATH", error_msgs["tables_path_not_found"])
+            ),
+            "columns": get_path(
+                get_env_variable("REQ_COLUMNS_PATH", error_msgs["columns_path_not_found"])
+            ),
+            "output": get_path(
+                get_env_variable("OUTPUT_PATH", error_msgs["output_path_not_found"])
+            )
+        },
+        "pipeline": {
+            "name": get_env_variable(
+                "PIPELINE_NAME", error_msgs["pipeline_name_not_found"]
+            ),
+            "metric_name": get_env_variable(
+                "METRIC_NAME", error_msgs["metric_name_not_found"]
+            )
+        },
+        "supabase": {
+            "url": get_env_variable(
+                "SUPABASE_URL", error_msgs["supabase_url_not_found"]
+            ),
+            "api_key": get_env_variable(
+                "SUPABASE_API_KEY", error_msgs["supabase_api_key_not_found"]
+            ),
+            "table_name": get_env_variable(
+                "TABLE_NAME", error_msgs["table_name_not_found"]
+            )
+        }
+    }

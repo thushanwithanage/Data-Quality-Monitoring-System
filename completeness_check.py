@@ -1,5 +1,5 @@
 from typing import List
-from config.bootstrap import get_current_date, get_current_timestamp, get_path, get_json_config, read_csv_file, get_env_variable
+from config.bootstrap import get_current_date, get_current_timestamp, get_json_config, read_csv_file
 from models.DQMetrics import DQMetric
 
 # Create metric record
@@ -27,7 +27,14 @@ def build_metric_record(
     )
 
 # Run data quality checks
-def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_msgs, pipeline_name) -> List[DQMetric]:
+def run_data_quality_checks(
+        tables: list[str], 
+        req_cols_config: dict[str, list[str]], 
+        data_path: str, 
+        logger, 
+        error_msgs: dict, 
+        pipeline_name: str
+    ) -> List[DQMetric]:
     
     dq_metrics: list[DQMetric] = []
 
@@ -83,27 +90,18 @@ def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_ms
 
     return dq_metrics
 
-def main(logger, error_msgs) -> List[DQMetric]:
+def main(config: dict, logger, error_msgs) -> List[DQMetric]:
     
-    config = {
-        "data_path": get_path(get_env_variable("DATA_PATH", error_msgs["data_path_not_found"])),
-        "tables_path": get_path(get_env_variable("TABLES_PATH", error_msgs["tables_path_not_found"])),
-        "columns_path": get_path(get_env_variable("REQ_COLUMNS_PATH", error_msgs["columns_path_not_found"])),
-        "output_path": get_path(get_env_variable("OUTPUT_PATH", error_msgs["output_path_not_found"])),
-        "output_format_path": get_path(get_env_variable("OUTPUT_FORMAT_PATH", error_msgs["output_format_not_found"])),
-        "pipeline_name": get_env_variable("PIPELINE_NAME", error_msgs["pipeline_name_not_found"])
-    }
-
-    tables = get_json_config(config["tables_path"])["tables"]
-    req_cols_config = get_json_config(config["columns_path"])
+    tables = get_json_config(config["paths"]["tables"])["tables"]
+    req_cols_config = get_json_config(config["paths"]["columns"])
 
     dq_metrics = run_data_quality_checks(
         tables,
         req_cols_config,
-        config["data_path"],
+        config["paths"]["data"],
         logger,
         error_msgs,
-        config["pipeline_name"]
+        config["pipeline"]["name"]
     )
 
     return dq_metrics
