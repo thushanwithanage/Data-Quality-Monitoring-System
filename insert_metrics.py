@@ -22,15 +22,17 @@ def create_supabase_client(url, api_key, logger, error_msgs) -> Client:
         raise
 
 # Batch insert records into Supabase database
-def insert_metrics_db(supabase: Client, table_name: str, records: list, logger, error_msgs):
+def insert_metrics_db(supabase: Client, table_name: str, records: list, logger, error_msgs) -> int:
+    records_inserted = 0
     if len(records) == 0:
         logger.error(error_msgs["no_records"])
-        return
+        return records_inserted
     try:
         response = supabase.table(table_name).upsert(records).execute()
         
         if response.data:
             logger.info(error_msgs["db_success_message"].format(len(response.data), table_name))
+            return len(response.data)
         else:
             logger.error(error_msgs["db_insert_error"].format(table_name))
 
@@ -39,3 +41,5 @@ def insert_metrics_db(supabase: Client, table_name: str, records: list, logger, 
 
     except Exception as e:
         logger.error(error_msgs["db_insert_error"].format(e))
+
+    return records_inserted

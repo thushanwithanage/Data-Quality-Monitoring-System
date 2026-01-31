@@ -2,6 +2,7 @@ from completeness_check import main as run_dq
 from insert_metrics import create_supabase_client, insert_metrics_db, save_json_output
 from config.bootstrap import load_pipeline_config, get_error_messages, get_output_path, setup_logger, setup_env, get_json_config
 from dataclasses import asdict
+from models.PipelineSummary import PipelineSummary
 
 def main(save_json: bool, save_db: bool = True):
     setup_env()
@@ -12,6 +13,8 @@ def main(save_json: bool, save_db: bool = True):
 
     tables = get_json_config(config["paths"]["tables"])
     req_cols = get_json_config(config["paths"]["columns"])
+
+    total_tables = len(tables.get("tables", []))
 
     # Run DQ metrics
     dq_metrics = run_dq(config, tables, req_cols, logger, error_msgs)
@@ -27,38 +30,22 @@ def main(save_json: bool, save_db: bool = True):
     
     if save_db:
         supabase = create_supabase_client(config["supabase"]["url"], config["supabase"]["api_key"], logger, error_msgs)
-        insert_metrics_db(supabase, config["supabase"]["table_name"], records, logger, error_msgs)
-    
-    total_tables = len(tables.get("tables", []))
-    total_metrics = len(dq_metrics)
+        total_metrics = insert_metrics_db(supabase, config["supabase"]["table_name"], records, logger, error_msgs)
 
-    summary = log_pipeline_summary(
-        pipeline_name=config["pipeline"]["name"],
-        total_tables=total_tables,
-        total_metrics=total_metrics,
-        save_json=save_json,
-        save_db=save_db
+    summary = PipelineSummary(
+        pipeline=config["pipeline"]["name"],
+        tables_processed=total_tables, 
+        metrics_generated=total_metrics,
+        json_saved=save_json,
+        db_saved=True if total_metrics > 0 else False
     )
 
-    logger.info(summary)
+    logger.info(format_pipeline_summary(summary))
 
-def log_pipeline_summary(
-    *,
-    pipeline_name: str,
-    total_tables: int,
-    total_metrics: int,
-    save_json: bool,
-    save_db: bool
-) -> str:
-    summary = (
-        f"Pipeline Summary | "
-        f"Pipeline: {pipeline_name} | "
-        f"Tables processed: {total_tables} | "
-        f"Metrics generated: {total_metrics} | "
-        f"JSON saved: {save_json} | "
-        f"DB saved: {save_db}"
-    )
-    return summary
+def format_pipeline_summary(summary: PipelineSummary) -> str:
+    data = asdict(summary)
+    parts = [f"{k.replace('_', ' ').title()}: {v}" for k, v in data.items()]
+    return "Pipeline Summary | " + " | ".join(parts)
 
 if __name__ == "__main__":
     main(save_json=True, save_db=True)
