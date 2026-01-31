@@ -9,7 +9,7 @@ def main(save_json: bool, save_db: bool = True):
     error_msgs = get_error_messages()
 
     # Run DQ metrics
-    dq_metrics, _ = run_dq()
+    dq_metrics = run_dq(logger, error_msgs)
     records = [asdict(m) for m in dq_metrics]
 
     if save_json:
@@ -31,4 +31,4 @@ def main(save_json: bool, save_db: bool = True):
         insert_metrics_db(supabase, config["table_name"], records, logger, error_msgs)
 
 if __name__ == "__main__":
-    main(save_json=True, save_db=False)
+    main(save_json=True, save_db=True)

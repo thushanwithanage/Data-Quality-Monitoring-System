@@ -1,3 +1,4 @@
+from typing import List
 from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
 from models.DQMetrics import DQMetric
 
@@ -26,7 +27,7 @@ def build_metric_record(
     )
 
 # Run data quality checks
-def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name) -> list:
+def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_msgs, pipeline_name) -> List[DQMetric]:
     
     dq_metrics: list[DQMetric] = []
 
@@ -82,11 +83,8 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
     return dq_metrics
 
-def main() -> tuple[list, dict]:
-    setup_env()
-    logger = setup_logger()
-    error_msgs = get_error_messages()
-
+def main(logger, error_msgs) -> List[DQMetric]:
+    
     config = {
         "data_path": get_path(get_env_variable("DATA_PATH", error_msgs["data_path_not_found"])),
         "tables_path": get_path(get_env_variable("TABLES_PATH", error_msgs["tables_path_not_found"])),
@@ -98,19 +96,17 @@ def main() -> tuple[list, dict]:
 
     tables = get_json_config(config["tables_path"])["tables"]
     req_cols_config = get_json_config(config["columns_path"])
-    output_keys = get_json_config(config["output_format_path"])
 
     dq_metrics = run_data_quality_checks(
         tables,
         req_cols_config,
-        output_keys,
         config["data_path"],
         logger,
         error_msgs,
         config["pipeline_name"]
     )
 
-    return dq_metrics, output_keys
+    return dq_metrics
 
 if __name__ == "__main__":
     main()
