@@ -6,10 +6,8 @@ from dotenv import load_dotenv
 from config import logging_config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-def get_base_directory():
-    return os.path.dirname(os.path.abspath(__file__))
-
+    
+# Setup environment variables
 def setup_env():
     load_dotenv(os.path.join(BASE_DIR, "config", ".env"))
 
@@ -29,6 +27,7 @@ def get_current_date() -> str:
 def get_current_timestamp() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+# Generate output file path
 def get_output_path(base_output_dir: str, metric_name: str, dated: bool) -> str:
     if dated:
         date_str = get_current_date()
@@ -40,13 +39,15 @@ def get_output_path(base_output_dir: str, metric_name: str, dated: bool) -> str:
         return os.path.join(base_output_dir, metric_name)
     return base_output_dir
 
-def get_json_config(config: str):
+# Read JSON file
+def get_json_config(config: str) -> dict:
     try:
         with open(config) as f:
             return json.load(f)
     except Exception as e:
         raise RuntimeError("json_load_error: {}".format(e)) 
 
+# Get CSV file as DataFrame
 def read_csv_file(data_path: str, table: str) -> pd.DataFrame:
     df = pd.read_csv(os.path.join(data_path, f"{table}.csv"), na_values=["", "NULL", "null"])
     return df, len(df)
@@ -60,9 +61,9 @@ def get_env_variable(var_name: str, error_msg: str) -> str:
 
 # Get file path
 def get_path(env_var: str) -> str:
-    base_dir = get_base_directory()
-    return os.path.join(base_dir, env_var)
+    return os.path.join(BASE_DIR, env_var)
 
+# Wrtite data to JSON file
 def write_to_json(output_file, dq_metrics, indent:int =4):
     with open(output_file, "w") as f:
         json.dump(dq_metrics, f, indent=indent)

@@ -8,3 +8,5 @@ __pycache__/
 
 /output/
 /config/__pycache__/
+
+/models/__pycache__/

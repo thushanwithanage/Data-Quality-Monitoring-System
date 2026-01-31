@@ -1,8 +1,8 @@
-from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, get_output_path, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
+from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
+from models.DQMetrics import DQMetric
 
 # Create metric record
 def build_metric_record(
-    output_keys: dict,
     pipeline_name: str,
     run_timestamp: str,
     metric_date: str,
@@ -10,25 +10,25 @@ def build_metric_record(
     column: str,
     total_rows: int,
     missing_rows: int,
-) -> dict:
+) -> DQMetric:
 
-    return {
-        output_keys["pipeline_name"]: pipeline_name,
-        output_keys["run_timestamp"]: run_timestamp,
-        output_keys["metric_date"]: metric_date,
-        output_keys["table_name"]: table,
-        output_keys["column_name"]: column,
-        output_keys["total_rows"]: int(total_rows),
-        output_keys["missing_rows"]: int(missing_rows),
-        output_keys["missing_percentage"]: round(
+    return DQMetric(
+        pipeline_name=pipeline_name,
+        run_timestamp=run_timestamp,
+        metric_date=metric_date,
+        table_name=table,
+        column_name=column,
+        total_rows=total_rows,
+        missing_rows=missing_rows,
+        missing_percentage=round(
             (missing_rows / total_rows * 100) if total_rows > 0 else 0, 2
-        )
-    }
+        ),
+    )
 
 # Run data quality checks
 def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name) -> list:
     
-    dq_metrics = []
+    dq_metrics: list[DQMetric] = []
 
     for table in tables:
         try:
@@ -64,7 +64,6 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
                 missing_rows = int(null_counts[col])
 
                 metric = build_metric_record(
-                    output_keys=output_keys,
                     pipeline_name=pipeline_name,
                     run_timestamp=run_ts,
                     metric_date=metric_date,
@@ -83,7 +82,7 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
     return dq_metrics
 
-def main():
+def main() -> tuple[list, dict]:
     setup_env()
     logger = setup_logger()
     error_msgs = get_error_messages()
