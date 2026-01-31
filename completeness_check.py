@@ -1,61 +1,6 @@
-import pandas as pd
 import json
 import os
-from dotenv import load_dotenv
-from datetime import datetime
-from config import logging_config
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Load error messages
-def load_error_messages():
-    try:
-        path = os.path.join(BASE_DIR, "config", "error_msgs.json")
-        with open(path) as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Failed to load error messages: {e}")
-        raise
-
-# Load environment config + logger
-def load_config_and_logger(error_msgs):
-    try:
-        load_dotenv(os.path.join(BASE_DIR, "config", ".env"))
-
-        config = {
-            "data_path": os.path.join(BASE_DIR, os.getenv("DATA_PATH")),
-            "tables_path": os.path.join(BASE_DIR, os.getenv("TABLES_PATH")),
-            "columns_path": os.path.join(BASE_DIR, os.getenv("REQ_COLUMNS_PATH")),
-            "output_path": os.path.join(BASE_DIR, os.getenv("OUTPUT_PATH")),
-            "output_format_path": os.path.join(BASE_DIR, os.getenv("OUTPUT_FORMAT_PATH")),
-            "pipeline_name": os.getenv("PIPELINE_NAME"),
-            "log_dir": os.path.join(BASE_DIR, os.getenv("LOG_PATH", "logs")),
-        }
-
-        logger = logging_config.setup_logger(config["log_dir"])
-        return config, logger
-
-    except Exception as e:
-        print(error_msgs["env_load_error"].format(e))
-        raise
-
-# Load JSON configuration files
-def load_json_configs(config, logger, error_msgs):
-    try:
-        with open(config["tables_path"]) as f:
-            tables = json.load(f)["tables"]
-
-        with open(config["columns_path"]) as f:
-            req_cols_config = json.load(f)
-
-        with open(config["output_format_path"]) as f:
-            output_keys = json.load(f)
-
-        return tables, req_cols_config, output_keys
-
-    except Exception as e:
-        logger.error(error_msgs["json_load_error"].format(e))
-        raise
+from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, get_output_path, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
 
 # Create metric record
 def build_metric_record(
@@ -82,10 +27,6 @@ def build_metric_record(
         )
     }
 
-# Read file
-def read_file(data_path: str, table: str) -> pd.DataFrame:
-    return pd.read_csv(os.path.join(data_path, f"{table}.csv"))
-
 # Run data quality checks
 def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name):
     
@@ -93,8 +34,7 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
     for table in tables:
         try:
-            df = read_file(data_path, table)
-            total_rows = len(df)
+            df, total_rows = read_csv_file(data_path, table)
 
             if df.empty:
                 logger.error(error_msgs["table_empty"].format(table))
@@ -112,8 +52,10 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
             logger.error(error_msgs["no_required_columns"].format(table))
             continue
 
-        run_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        metric_date = datetime.now().strftime("%Y-%m-%d")
+        run_ts = get_current_timestamp()
+        metric_date = get_current_date()
+
+        null_counts = df.isnull().sum()
 
         for col in req_cols_list:
             try:
@@ -121,7 +63,8 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
                     logger.error(error_msgs["column_not_found"].format(col, table))
                     continue
 
-                missing_rows = int(df[col].isnull().sum())
+                #missing_rows = int(df[col].isnull().sum())
+                missing_rows = int(null_counts[col])
 
                 metric = build_metric_record(
                     output_keys=output_keys,
@@ -144,28 +87,41 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
     return dq_metrics
 
 # Save output
-def save_output(dq_metrics, output_path, logger, error_msgs):
+def save_output(dq_metrics, output_path, logger, error_msgs, enabled: bool):
+    if not enabled:
+        return
     try:
         os.makedirs(output_path, exist_ok=True)
-        current_date = datetime.today().strftime("%Y-%m-%d")
-        output_file = os.path.join(output_path, f"{current_date}.json")
+        output_file = get_output_path(
+            base_output_dir=get_path(get_env_variable("OUTPUT_PATH", error_msgs["output_path_not_found"])),
+            metric_name=get_env_variable("METRIC_NAME", error_msgs["metric_name_not_found"]),
+            dated=True
+        )
 
-        with open(output_file, "w") as f:
-            json.dump(dq_metrics, f, indent=4)
-
+        write_to_json(output_file, dq_metrics)
         logger.info(error_msgs["success_message"].format(output_file))
 
     except Exception as e:
         logger.error(error_msgs["json_save_error"].format(e))
         raise
 
-def main():
-    error_msgs = load_error_messages()
-    config, logger = load_config_and_logger(error_msgs)
+def main(persist_output: bool):
+    setup_env()
+    logger = setup_logger()
+    error_msgs = get_error_messages()
 
-    tables, req_cols_config, output_keys = load_json_configs(
-        config, logger, error_msgs
-    )
+    config = {
+        "data_path": get_path(get_env_variable("DATA_PATH", error_msgs["data_path_not_found"])),
+        "tables_path": get_path(get_env_variable("TABLES_PATH", error_msgs["tables_path_not_found"])),
+        "columns_path": get_path(get_env_variable("REQ_COLUMNS_PATH", error_msgs["columns_path_not_found"])),
+        "output_path": get_path(get_env_variable("OUTPUT_PATH", error_msgs["output_path_not_found"])),
+        "output_format_path": get_path(get_env_variable("OUTPUT_FORMAT_PATH", error_msgs["output_format_not_found"])),
+        "pipeline_name": get_env_variable("PIPELINE_NAME", error_msgs["pipeline_name_not_found"])
+    }
+
+    tables = get_json_config(config["tables_path"])["tables"]
+    req_cols_config = get_json_config(config["columns_path"])
+    output_keys = get_json_config(config["output_format_path"])
 
     dq_metrics = run_data_quality_checks(
         tables,
@@ -177,7 +133,9 @@ def main():
         config["pipeline_name"]
     )
 
-    save_output(dq_metrics, config["output_path"], logger, error_msgs)
+    save_output(dq_metrics, config["output_path"], logger, error_msgs, enabled=persist_output)
+
+    return dq_metrics, output_keys
 
 if __name__ == "__main__":
-    main()
+    main(persist_output=True)

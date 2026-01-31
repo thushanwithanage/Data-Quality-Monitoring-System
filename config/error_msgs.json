@@ -11,6 +11,18 @@
     "success_message": "Data quality metrics saved to {}",
     "db_success_message": "Inserted '{}' rows into table '{}' successfully",
     "db_insert_error": "Error inserting data into table '{}'",
+    "db_error": "Database connection error: {}, {}",
     "supabase_client_error": "Error creating Supabase client: {}",
-    "key_error": "Key error encountered: {}"
+    "key_error": "Key error encountered: {}",
+    "no_records":"No records found",
+    "output_format_not_found": "Output format path environment variable not found: {}",
+    "pipeline_name_not_found": "Pipeline name environment variable not found: {}",
+    "data_path_not_found": "Data path environment variable not found: {}",
+    "columns_path_not_found": "Columns path environment variable not found: {}",
+    "tables_path_not_found": "Tables path environment variable not found: {}",
+    "output_path_not_found": "Output path environment variable not found: {}",
+    "metric_name_not_found": "Metric name environment variable not found: {}",
+    "supabase_url_not_found": "Supabase URL environment variable not found: {}",
+    "supabase_api_key_not_found": "Supabase API key environment variable not found: {}",
+    "table_name_not_found": "Table name environment variable not found: {}"
 }
