@@ -5,3 +5,6 @@
 logs/
 
 __pycache__/
+
+/output/
+/config/__pycache__/

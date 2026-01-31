@@ -1,5 +1,3 @@
-import json
-import os
 from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, get_output_path, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
 
 # Create metric record
@@ -28,7 +26,7 @@ def build_metric_record(
     }
 
 # Run data quality checks
-def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name):
+def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, logger, error_msgs, pipeline_name) -> list:
     
     dq_metrics = []
 
@@ -63,7 +61,6 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
                     logger.error(error_msgs["column_not_found"].format(col, table))
                     continue
 
-                #missing_rows = int(df[col].isnull().sum())
                 missing_rows = int(null_counts[col])
 
                 metric = build_metric_record(
@@ -86,26 +83,7 @@ def run_data_quality_checks(tables, req_cols_config, output_keys, data_path, log
 
     return dq_metrics
 
-# Save output
-def save_output(dq_metrics, output_path, logger, error_msgs, enabled: bool):
-    if not enabled:
-        return
-    try:
-        os.makedirs(output_path, exist_ok=True)
-        output_file = get_output_path(
-            base_output_dir=get_path(get_env_variable("OUTPUT_PATH", error_msgs["output_path_not_found"])),
-            metric_name=get_env_variable("METRIC_NAME", error_msgs["metric_name_not_found"]),
-            dated=True
-        )
-
-        write_to_json(output_file, dq_metrics)
-        logger.info(error_msgs["success_message"].format(output_file))
-
-    except Exception as e:
-        logger.error(error_msgs["json_save_error"].format(e))
-        raise
-
-def main(persist_output: bool):
+def main():
     setup_env()
     logger = setup_logger()
     error_msgs = get_error_messages()
@@ -133,9 +111,7 @@ def main(persist_output: bool):
         config["pipeline_name"]
     )
 
-    save_output(dq_metrics, config["output_path"], logger, error_msgs, enabled=persist_output)
-
     return dq_metrics, output_keys
 
 if __name__ == "__main__":
-    main(persist_output=True)
+    main()
