@@ -1,6 +1,7 @@
+from logging import config
 from completeness_check import main as run_dq
 from insert_metrics import create_supabase_client, insert_metrics_db, save_json_output
-from config.bootstrap import load_pipeline_config, get_error_messages, get_output_path, setup_logger, setup_env
+from config.bootstrap import load_pipeline_config, get_error_messages, get_output_path, setup_logger, setup_env, get_json_config
 from dataclasses import asdict
 
 def main(save_json: bool, save_db: bool = True):
@@ -10,8 +11,11 @@ def main(save_json: bool, save_db: bool = True):
 
     config = load_pipeline_config(error_msgs)
 
+    tables = get_json_config(config["paths"]["tables"])
+    req_cols = get_json_config(config["paths"]["columns"])
+
     # Run DQ metrics
-    dq_metrics = run_dq(config, logger, error_msgs)
+    dq_metrics = run_dq(config, tables, req_cols, logger, error_msgs)
     records = [asdict(m) for m in dq_metrics]
 
     if save_json:

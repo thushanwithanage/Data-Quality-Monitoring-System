@@ -90,14 +90,17 @@ def run_data_quality_checks(
 
     return dq_metrics
 
-def main(config: dict, logger, error_msgs) -> List[DQMetric]:
-    
-    tables = get_json_config(config["paths"]["tables"])["tables"]
-    req_cols_config = get_json_config(config["paths"]["columns"])
+def main(config: dict, tables: dict, req_cols: dict, logger, error_msgs) -> List[DQMetric]:
+
+    tables = tables.get("tables", [])
+
+    if not tables:
+        logger.error(error_msgs["no_tables_defined"])
+        return []
 
     dq_metrics = run_data_quality_checks(
         tables,
-        req_cols_config,
+        req_cols,
         config["paths"]["data"],
         logger,
         error_msgs,

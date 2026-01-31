@@ -24,5 +24,6 @@
     "metric_name_not_found": "Metric name environment variable not found: {}",
     "supabase_url_not_found": "Supabase URL environment variable not found: {}",
     "supabase_api_key_not_found": "Supabase API key environment variable not found: {}",
-    "table_name_not_found": "Table name environment variable not found: {}"
+    "table_name_not_found": "Table name environment variable not found: {}",
+    "no_tables_defined": "No tables defined in the tables configuration"
 }
