@@ -1,5 +1,5 @@
 from typing import List
-from config.bootstrap import get_current_date, get_current_timestamp, get_error_messages, setup_logger, setup_env, get_path, get_json_config, read_csv_file, get_env_variable, write_to_json
+from config.bootstrap import get_current_date, get_current_timestamp, get_path, get_json_config, read_csv_file, get_env_variable
 from models.DQMetrics import DQMetric
 
 # Create metric record
@@ -31,6 +31,9 @@ def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_ms
     
     dq_metrics: list[DQMetric] = []
 
+    run_timestamp = get_current_timestamp()
+    metric_date = get_current_date()
+    
     for table in tables:
         try:
             df, total_rows = read_csv_file(data_path, table)
@@ -51,25 +54,22 @@ def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_ms
             logger.error(error_msgs["no_required_columns"].format(table))
             continue
 
-        run_ts = get_current_timestamp()
-        metric_date = get_current_date()
-
         null_counts = df.isnull().sum()
 
-        for col in req_cols_list:
+        for column in req_cols_list:
             try:
-                if col not in df.columns:
-                    logger.error(error_msgs["column_not_found"].format(col, table))
+                if column not in df.columns:
+                    logger.error(error_msgs["column_not_found"].format(column, table))
                     continue
 
-                missing_rows = int(null_counts[col])
+                missing_rows = int(null_counts[column])
 
                 metric = build_metric_record(
                     pipeline_name=pipeline_name,
-                    run_timestamp=run_ts,
+                    run_timestamp=run_timestamp,
                     metric_date=metric_date,
                     table=table,
-                    column=col,
+                    column=column,
                     total_rows=total_rows,
                     missing_rows=missing_rows
                 )
@@ -77,9 +77,9 @@ def run_data_quality_checks(tables, req_cols_config, data_path, logger, error_ms
                 dq_metrics.append(metric)
 
             except KeyError:
-                logger.error(error_msgs["column_not_found"].format(col, table))
+                logger.error(error_msgs["column_not_found"].format(column, table))
             except Exception as e:
-                logger.error(error_msgs["column_processing_error"].format(col, table, e))
+                logger.error(error_msgs["column_processing_error"].format(column, table, e))
 
     return dq_metrics
 

@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def setup_env():
     load_dotenv(os.path.join(BASE_DIR, "config", ".env"))
 
+# Return error messages from JSON file
 def get_error_messages() -> dict:
     path = os.path.join(BASE_DIR, "config", "error_msgs.json")
     with open(path) as f:
