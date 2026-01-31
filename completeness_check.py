@@ -1,5 +1,5 @@
 from typing import List
-from config.bootstrap import get_current_date, get_current_timestamp, get_json_config, read_csv_file
+from config.bootstrap import get_current_date, get_current_timestamp, read_csv_file
 from models.DQMetrics import DQMetric
 
 # Create metric record

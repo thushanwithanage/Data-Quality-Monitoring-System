@@ -1,4 +1,3 @@
-from logging import config
 from completeness_check import main as run_dq
 from insert_metrics import create_supabase_client, insert_metrics_db, save_json_output
 from config.bootstrap import load_pipeline_config, get_error_messages, get_output_path, setup_logger, setup_env, get_json_config
@@ -29,6 +28,37 @@ def main(save_json: bool, save_db: bool = True):
     if save_db:
         supabase = create_supabase_client(config["supabase"]["url"], config["supabase"]["api_key"], logger, error_msgs)
         insert_metrics_db(supabase, config["supabase"]["table_name"], records, logger, error_msgs)
+    
+    total_tables = len(tables.get("tables", []))
+    total_metrics = len(dq_metrics)
+
+    summary = log_pipeline_summary(
+        pipeline_name=config["pipeline"]["name"],
+        total_tables=total_tables,
+        total_metrics=total_metrics,
+        save_json=save_json,
+        save_db=save_db
+    )
+
+    logger.info(summary)
+
+def log_pipeline_summary(
+    *,
+    pipeline_name: str,
+    total_tables: int,
+    total_metrics: int,
+    save_json: bool,
+    save_db: bool
+) -> str:
+    summary = (
+        f"Pipeline Summary | "
+        f"Pipeline: {pipeline_name} | "
+        f"Tables processed: {total_tables} | "
+        f"Metrics generated: {total_metrics} | "
+        f"JSON saved: {save_json} | "
+        f"DB saved: {save_db}"
+    )
+    return summary
 
 if __name__ == "__main__":
     main(save_json=True, save_db=True)
