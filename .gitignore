@@ -5,8 +5,12 @@
 logs/
 
 __pycache__/
-
-/output/
 /config/__pycache__/
-
 /models/__pycache__/
+/tests/__pycache__/
+
+# Output files
+/output/
+
+# Test files
+/tests/*.pyc
