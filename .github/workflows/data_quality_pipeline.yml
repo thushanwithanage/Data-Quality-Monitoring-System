@@ -43,6 +43,8 @@ jobs:
           echo "SUPABASE_API_KEY=${{ secrets.SUPABASE_API_KEY }}" >> $GITHUB_ENV
 
       - name: Run unit tests
+        env:
+            PYTHONPATH: .
         run: |
           pytest -m pytest -v
 
