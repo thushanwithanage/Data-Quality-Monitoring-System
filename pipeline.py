@@ -48,4 +48,4 @@ def format_pipeline_summary(summary: PipelineSummary) -> str:
     return "Pipeline Summary | " + " | ".join(parts)
 
 if __name__ == "__main__":
-    main(save_json=True, save_db=True)
+    main(save_json=False, save_db=True)
