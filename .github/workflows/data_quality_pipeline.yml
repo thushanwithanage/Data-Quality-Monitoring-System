@@ -46,7 +46,7 @@ jobs:
         env:
             PYTHONPATH: .
         run: |
-          pytest -m pytest -v
+          python -m pytest -v
 
       # Push / PR
       - name: Run pipeline (no DB writes)
